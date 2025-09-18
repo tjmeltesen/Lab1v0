@@ -1,43 +1,73 @@
-#include <Arduino.h>
+#include <WiFi.h>
+#include <WebServer.h>
 
-// put function declarations here:
+/* Put your SSID & Password */
+const char* ssid = "ESP32";         // Enter SSID here
+const char* password = "12345678";  // Enter Password here
 
-#include <BluetoothSerial.h>
+/* Put IP Address details */
+IPAddress local_ip(192,168,1,1);
+IPAddress gateway(192,168,1,1);
+IPAddress subnet(255,255,255,0);
 
-// Function to send a message over Bluetooth Serial
-void sendBluetoothMessage(const String& message);
-static BluetoothSerial SerialBT;
+WebServer server(80);
+
+int counter = 0;
+
 void setup() {
-  Serial.begin(9600); // Or use Serial1.begin(x115200, SERIAL_8N1, RX_PIN, TX_PIN);
-  while (!Serial) {
-    ; // Wait for serial port to connect. Needed for native USB
-  }
-  // Start Bluetooth Serial at default device name "ESP32test"
-  SerialBT.begin("ESP32test");
-}
+  Serial.begin(9600);
 
-// Function to send a message over Bluetooth Serial
-void sendBluetoothMessage(const String& message) {
-  static BluetoothSerial SerialBT;
-  if (!SerialBT.hasClient()) {
-    // Wait for a client to connect (optional, or just send anyway)
-    Serial.println("Waiting for Bluetooth client...");
-  }
-  SerialBT.println(message);
+  WiFi.softAP(ssid, password);
+  WiFi.softAPConfig(local_ip, gateway, subnet);
+  delay(100);
+  
+  server.on("/", handle_OnConnect);
+
+  server.on("/data", handle_thermo);
+
+
+  server.onNotFound(handle_NotFound);
+  
+  server.begin();
+  Serial.println("HTTP server started");
 }
 
 void loop() {
-  if (Serial.available()) {
-    String received = Serial.readStringUntil('\n');
-    Serial.println("Echo: "); // Send response back
-    Serial.println(received); // Send response back
-    SerialBT.println(received); // Forward to Bluetooth
-  }
-  if (SerialBT.available()) {
-    String btReceived = SerialBT.readStringUntil('\n');
-    Serial.print("Bluetooth Received: ");
-    Serial.println(btReceived);
-  }
-  delay(20);
+  server.handleClient();
 }
 
+void handle_OnConnect() {
+  counter++;
+  server.send(200, "text/html", createHTML());
+}
+
+void handle_thermo(){
+  //do spmoething with such data
+  //return something
+
+  server.send(200, "text/plain", "data recieved ");
+}
+
+
+void handle_NotFound() {
+  server.send(404, "text/plain", "Not found");
+}
+
+String createHTML() {
+  String str = "<!DOCTYPE html> <html>";
+  str += "<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">";
+  str += "<style>";
+  str += "body {font-family: Arial, sans-serif; color: #444; text-align: center;}";
+  str += ".title {font-size: 30px; font-weight: bold; letter-spacing: 2px; margin: 80px 0 55px;}";
+  str += ".counter {font-size: 80px; font-weight: 300; line-height: 1; margin: 0px; color: #4285f4;}";
+  str += "</style>";
+  str += "</head>";
+  str += "<body>";
+  str += "<h1 class=\"title\">VISITOR COUNTER</h1>";
+  str += "<div class=\"counter\">";
+  str += counter;
+  str += "</div>";
+  str += "</body>";
+  str += "</html>";
+  return str;
+}
