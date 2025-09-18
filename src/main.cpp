@@ -9,8 +9,13 @@
 +===============================================================*/
 const int GPIO_PIN19=19;
 const int GPIO_PIN18=18;
+struct Button {
+  const uint8_t PIN;
+  bool pressed;
+};
 Button button1 = {GPIO_PIN18, false};
 Button button2 = {GPIO_PIN19, false};
+void IRAM_ATTR button_pressed();
 // ...existing code...
 void setup() {
   Serial.begin(9600);
@@ -27,10 +32,7 @@ void loop() {
   server_loop();
 }
 
-struct Button {
-  const uint8_t PIN;
-  bool pressed;
-};
+
 
 void IRAM_ATTR button_pressed() {
   // Handle button press interrupt

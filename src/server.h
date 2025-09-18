@@ -6,7 +6,7 @@
 #include <WebServer.h>
 
 
-extern int counter;
+
 extern bool RequestFlag;
 extern const char* ssid;
 extern const char* password;
@@ -22,6 +22,6 @@ void handle_request();
 void handle_NotFound();
 void handle_BadCommand();
 void handle_OnConnect();
-String createHTML();
+
 
 #endif // SERVER_H
