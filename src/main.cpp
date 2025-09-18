@@ -9,7 +9,8 @@
 +===============================================================*/
 const int GPIO_PIN19=19;
 const int GPIO_PIN18=18;
-
+Button button1 = {GPIO_PIN18, false};
+Button button2 = {GPIO_PIN19, false};
 // ...existing code...
 void setup() {
   Serial.begin(9600);
@@ -19,6 +20,23 @@ void setup() {
 
 void loop() {
   // Server logic moved to server.cpp
+  pinMode(button1.PIN, INPUT_PULLUP); //Will read a HIGH to Low transition
+  pinMode(button2.PIN, INPUT_PULLUP);
+  attachInterrupt(button1.PIN, button_pressed, FALLING);
+  attachInterrupt(button2.PIN, button_pressed, FALLING);
   server_loop();
 }
 
+struct Button {
+  const uint8_t PIN;
+  bool pressed;
+};
+
+void IRAM_ATTR button_pressed() {
+  // Handle button press interrupt
+  // This is just a placeholder; actual implementation may vary
+  // depending on how you want to handle button presses
+  // For example, you might want to set a flag or increment a counter
+  // Here, we'll just print to the Serial console for demonstration
+  Serial.println("Button pressed!");
+}
